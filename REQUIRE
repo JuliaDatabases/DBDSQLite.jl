@@ -1,0 +1,4 @@
+julia 0.3-
+DBI
+DataArrays 0.1-
+DataFrames 0.5-
