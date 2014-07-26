@@ -15,12 +15,12 @@ let
     end
     @osx_only begin
         lib_choices = [
-                        "/usr/local/lib/libsqlite3.dylib",
-                        "/usr/lib/libsqlite3.dylib",
-                        Pkg.dir("SQLite", "lib", "libsqlite3")
-                      ]
+            "/usr/local/lib/libsqlite3.dylib",
+            "/usr/lib/libsqlite3.dylib",
+            Pkg.dir("SQLite", "lib", "libsqlite3")
+        ]
     end
-    for lib in lib_choices 
+    for lib in lib_choices
         try
             dlopen(lib)
             succeeded = true

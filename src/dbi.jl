@@ -1,20 +1,24 @@
-function DBI.columninfo(db::SQLiteDatabaseHandle,
-                        table::String,
-                        column::String)
+function DBI.columninfo(
+    db::SQLiteDatabaseHandle,
+    table::String,
+    column::String
+)
     datatype = Array(Ptr{Uint8}, 1)
     collseq = Array(Ptr{Uint8}, 1)
     notnull = Array(Cint, 1)
     primarykey = Array(Cint, 1)
     autoinc = Array(Cint, 1)
 
-    status = sqlite3_table_column_metadata(db.ptr,
-                                           table,
-                                           column,
-                                           datatype,
-                                           collseq,
-                                           notnull,
-                                           primarykey,
-                                           autoinc)
+    status = sqlite3_table_column_metadata(
+        db.ptr,
+        table,
+        column,
+        datatype,
+        collseq,
+        notnull,
+        primarykey,
+        autoinc
+    )
     db.status = status
     if status != SQLITE_OK
         error(errstring(db))
@@ -22,26 +26,30 @@ function DBI.columninfo(db::SQLiteDatabaseHandle,
 
     datatype, length = sql2jltype(bytestring(datatype[1]))
 
-    return DBI.DatabaseColumn(column,
-                              datatype,
-                              length,
-                              bytestring(collseq[1]),
-                              bool(1 - notnull[1]),
-                              bool(primarykey[1]),
-                              bool(autoinc[1]))
+    return DBI.DatabaseColumn(
+        column,
+        datatype,
+        length,
+        bytestring(collseq[1]),
+        bool(1 - notnull[1]),
+        bool(primarykey[1]),
+        bool(autoinc[1])
+    )
 end
 
-function Base.connect(::Type{SQLite3},
-                      path::String,
-                      accessmode = convert(Cint, SQLITE_OPEN_READWRITE),
-                      vfs::Ptr{Void} = C_NULL)
+function Base.connect(
+    ::Type{SQLite3},
+    path::String,
+    accessmode = convert(Cint, SQLITE_OPEN_READWRITE),
+    vfs::Ptr{Void} = C_NULL
+)
     dbptrptr = Array(Ptr{Void}, 1)
     # TODO: Check whether path should be UTF8
     status = sqlite3_open_v2(utf8(path), dbptrptr, accessmode, vfs)
     db = SQLiteDatabaseHandle(dbptrptr[1], status)
     db.status = status
     if status != SQLITE_OK
-        msg = @sprintf "Failed to connect to database at '%s'" path
+        msg = @sprintf("Failed to connect to database at '%s'", path)
         error(msg)
     end
     return db
@@ -64,8 +72,8 @@ function DBI.errstring(db::SQLiteDatabaseHandle)
     errmsg1 = bytestring(sqlite3_errstr(db.status))
     errmsg2 = bytestring(sqlite3_errmsg(db.ptr))
     io = IOBuffer()
-    @printf io "Error code %d: %s\n" db.status errmsg1
-    @printf io "Error message: %s\n" errmsg2
+    @printf(io, "Error code %d: %s\n", db.status, errmsg1)
+    @printf(io, "Error message: %s\n", errmsg2)
     return bytestring(io)
 end
 
@@ -224,7 +232,13 @@ function DBI.fetchdf(stmt::SQLiteStatementHandle)
                 end
                 if i <= nrows
                     T = typeof(da[i])
-                    cols[j] = convert(DataVector{T}, da)
+                    # Need to perform convert safely
+                    # cols[j] = convert(DataVector{T}, da)
+                    tmp = DataArray(T, length(da))
+                    for ind in 1:length(da)
+                        tmp[ind] = da[ind]
+                    end
+                    cols[j] = tmp
                 end
             end
         end
@@ -248,10 +262,12 @@ end
 
 function DBI.prepare(db::SQLiteDatabaseHandle, sql::String)
     stmtptrptr = Array(Ptr{Void}, 1)
-    status = sqlite3_prepare_v2(db.ptr,
-                                utf8(sql),
-                                stmtptrptr,
-                                [C_NULL])
+    status = sqlite3_prepare_v2(
+        db.ptr,
+        utf8(sql),
+        stmtptrptr,
+        [C_NULL]
+    )
     db.status = status
     if status != SQLITE_OK
         error(errstring(db))

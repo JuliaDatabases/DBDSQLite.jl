@@ -1,7 +1,5 @@
 module DBDSQLite
-    using DBI
-    using DataArrays
-    using DataFrames
+    using DBI, DataArrays, DataFrames
 
     export SQLite3
 

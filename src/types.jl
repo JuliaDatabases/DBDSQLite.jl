@@ -10,8 +10,10 @@ type SQLiteStatementHandle <: DBI.StatementHandle
     ptr::Ptr{Void}
     executed::Int
 
-    function SQLiteStatementHandle(db::SQLiteDatabaseHandle,
-                                   ptr::Ptr{Void})
+    function SQLiteStatementHandle(
+        db::SQLiteDatabaseHandle,
+        ptr::Ptr{Void}
+    )
         new(db, ptr, 0)
     end
 end

@@ -7,17 +7,20 @@ module TestDBI
     run(`touch $path`)
     db = connect(SQLite3, path)
 
-    stmt = prepare(db,
-                   "CREATE TABLE users (id INT NOT NULL, name VARCHAR(255))")
-    executed(stmt)
+    stmt = prepare(
+        db,
+        "CREATE TABLE users (id INT NOT NULL, name VARCHAR(255))"
+    )
+    @assert executed(stmt) == 0
     execute(stmt)
-    executed(stmt)
+    @assert executed(stmt) == 1
     finish(stmt)
 
     try
-        stmt =
-            prepare(db,
-                    "CREATE TABLE users (id INT NOT NULL, name VARCHAR(255))")
+        stmt = prepare(
+            db,
+            "CREATE TABLE users (id INT NOT NULL, name VARCHAR(255))"
+        )
     end
     errcode(db)
     errstring(db)
@@ -81,16 +84,20 @@ module TestDBI
     df = fetchdf(stmt)
     finish(stmt)
 
-    df = select(db,
-                "SELECT * FROM sqlite_master
-                 WHERE type = 'table' ORDER BY name")
-    df = select(db,
-                "SELECT * FROM Album")
-    df = select(db,
-                "SELECT a.*, b.AlbumId
-                 FROM Artist a
-                 LEFT OUTER JOIN Album b ON b.ArtistId = a.ArtistId
-                 ORDER BY name")
+    df = select(
+        db,
+        "SELECT * FROM sqlite_master WHERE type = 'table' ORDER BY name"
+    )
+    df = select(db, "SELECT * FROM Album")
+    df = select(
+        db,
+        """
+        SELECT a.*, b.AlbumId
+        FROM Artist a
+        LEFT OUTER JOIN Album b ON b.ArtistId = a.ArtistId
+        ORDER BY name
+        """
+    )
 
     disconnect(db)
 end
